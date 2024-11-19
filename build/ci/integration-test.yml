@@ -1,0 +1,25 @@
+integration-test:
+  extends: .test
+  image: registry.gitlab.edgecastcdn.net/edgecast/web-platform/identity/golang-test-tools/main:1.22.5-alpine3.20
+  stage: test
+  needs:
+    - job: aws-assume-role
+      artifacts: true
+      optional: true
+  variables:
+    CATEGORY: "integration"
+    MONGO_URL: "mongodb://db:27017"
+    MONGO_INITDB_ROOT_USERNAME: admin
+    MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    COVERAGE_FILE: "integration-coverage.out"
+  services:
+    - !reference [.subsystem_services]
+  before_script:
+    - !reference [.add_gitlab_auth]
+    - !reference [.deploy_env]
+    - export APPCONFIG_APPLICATION=dev-sas-apim-api;
+    # load aws credentials into env vars
+    - "[ -e aws.env ] && export $(cat aws.env | xargs)"
+  tags:
+    - sas
+    - svc

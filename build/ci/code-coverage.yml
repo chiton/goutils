@@ -1,0 +1,9 @@
+merge-test-job:
+  image: registry.gitlab.edgecastcdn.net/edgecast/web-platform/identity/golang-test-tools/main:1.22.5-alpine3.20
+  needs:
+    - job: unit-test
+      artifacts: true
+    - job: integration-test
+      artifacts: true
+  variables:
+    COVERAGE_FILES: "unit-coverage.out integration-coverage.out"

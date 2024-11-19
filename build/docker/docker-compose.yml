@@ -1,0 +1,10 @@
+version: "3.8"
+
+services:
+  db:
+    image: mongo:4.2-bionic
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    ports:
+      - 27024:27017

@@ -1,0 +1,51 @@
+# You can override the included template(s) by including variable overrides
+# See https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
+# Note that environment variables can be set in several places
+# See https://docs.gitlab.com/ee/ci/variables/#priority-of-environment-variables
+image: registry.gitlab.edgecastcdn.net/ci-tools/images/base/20.04
+
+variables:
+  FF_NETWORK_PER_BUILD: 1
+
+include:
+  - project: edgecast/web-platform/identity/gitlab-templates
+    ref: b0dc4988475b899c41c63b63f20b4499aa11221f
+    file:
+      - "/AWS/.assume-role.yml"
+      - "/.standard-jobs.yml"
+      - "/.version.yml"
+      - "/.cache-go.yml"
+      - "/Test/.test-go.yml"
+      - "/Test/.code-coverage.yml"
+  - build/ci/aws-assume-role.yml
+  - build/ci/test.yml
+  - build/ci/integration-test.yml
+  - build/ci/code-coverage.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
+
+stages:
+  - test
+  - version
+  - build
+
+.add_gitlab_auth:
+  - go env -w GOPRIVATE=gitlab.edgecastcdn.net
+  - echo "machine $CI_SERVER_HOST" >> ~/.netrc
+  - echo "login $GOMODULE_USER" >> ~/.netrc
+  - echo "password $GOMODULE_USER_TOKEN" >> ~/.netrc
+
+.subsystem_services:
+  - name: mongo:4.2-bionic
+    alias: db
+
+secret_detection:
+  stage: .pre
+  rules: !reference [.if-release-or-mr]
+  variables:
+    GIT_DEPTH: 100
+    SECURE_LOG_LEVEL: debug
+
+semgrep-sast:
+  stage: .pre
+  rules: !reference [.if-release-or-mr]

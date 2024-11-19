@@ -1,0 +1,31 @@
+unit-test:
+  extends: .test
+  image: registry.gitlab.edgecastcdn.net/edgecast/web-platform/identity/golang-test-tools/main:1.22.5-alpine3.20
+  variables:
+    CATEGORY: "unit"
+    COVERAGE_FILE: "unit-coverage.out"
+  before_script:
+    - !reference [.add_gitlab_auth]
+  artifacts:
+    expose_as: unit-test
+
+ensure-gofmt:
+  stage: .pre
+  image: golang:1.18.1-alpine3.15
+  script:
+    - touch ensure-gofmt.txt
+    - R=$(gofmt -l -s .)
+    - echo $R
+    - |
+      if [ -n "$R" ]; then
+        echo "$R" >> ensure-gofmt.txt
+        echo "Go format changes detected"
+        echo "PLEASE RUN go fmt ./..."
+        exit 1
+      else
+        echo 'Formatting all good. SHIP IT!'
+      fi
+  artifacts:
+    expose_as: ensure-gofmt
+    paths:
+      - ensure-gofmt.txt

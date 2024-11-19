@@ -1,0 +1,7 @@
+# this provides overrides that are defined in the included /AWS/.assume-role.yml
+aws-assume-role:
+  variables:
+    AWS_ROLE_ARN: $AWS_SAS_NON_PROD_ROLE
+  tags:
+    - sas
+    - svc
